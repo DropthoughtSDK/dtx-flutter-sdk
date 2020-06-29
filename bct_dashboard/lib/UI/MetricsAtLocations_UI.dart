@@ -10,6 +10,7 @@ import './Low/DropDown.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import './High/PieChart.dart';
 import '../UI/Low/Logger.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class MetricsAtLocationsUI extends StatefulWidget {
   @override
@@ -84,15 +85,25 @@ class _MetricsAtLocationsUIState extends State<MetricsAtLocationsUI> {
       child: Consumer<MetricsAtLocationsViewModel>(
         builder: (context, model, child) {
           if (viewModel.result == null) {
-            return Text("Loading data, please wait");
+            log.i(
+                "Data is loading, displaying a circular loading indicator in the meantime");
+            return SpinKitWave(
+              itemBuilder: (BuildContext context, int index) {
+                return DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: index.isEven ? Colors.red[700] : Colors.blue[700],
+                  ),
+                );
+              },
+            );
           } else {
             return SafeArea(
               child: Scaffold(
                 backgroundColor: Color(0xff121212),
                 body: LiquidPullToRefresh(
-                  color: Color(0xffa64dff),
+                  color: Colors.black,
                   animSpeedFactor: 1.5,
-                  backgroundColor: Colors.black,
+                  backgroundColor: Colors.white,
                   showChildOpacityTransition: false,
                   onRefresh: () async {
                     log.i("Data is refreshed now");
