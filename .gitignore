@@ -1,3 +1,9 @@
 Materials/
 NodeJS Backend/node_modules
 NodeJS Backend/Flutter test
+bct_dashboard/.dart_tool/
+bct_dashboard/.packages
+bct_dashboard/build/
+bct_dashboard/pubspec.lock
+bct_dashboard/.flutter-plugins
+bct_dashboard/.flutter-plugins-dependencies
