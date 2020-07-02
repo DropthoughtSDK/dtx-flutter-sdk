@@ -3,7 +3,7 @@ import 'package:logger/logger.dart';
 import '../UI/Low/Logger.dart';
 
 class ConfigTest {
-  static final HttpLink _httpLink = HttpLink(uri: 'http://10.0.2.2:3000/');
+  static final HttpLink _httpLink = HttpLink(uri: 'http://localhost:3000/');
   static Logger log = ReturnLogger.returnLogger();
 
   static GraphQLClient initailizeClient() {

@@ -133,6 +133,30 @@ class _LineChartWidgetState extends State<LineChartWidget> {
                       return it.toString();
                     }
                   }
+                } else if (tempMinVal > 100 && tempMaxVal <= 1000) {
+                  for (int it = 100; it <= 1000; it += 200) {
+                    if (value == it) {
+                      return it.toString();
+                    }
+                  }
+                } else if (tempMinVal > 1000 && tempMaxVal <= 2000) {
+                  for (int it = 1000; it <= 2000; it += 200) {
+                    if (value == it) {
+                      return it.toString();
+                    }
+                  }
+                } else if (tempMinVal > 2000 && tempMaxVal <= 3000) {
+                  for (int it = 2000; it <= 3000; it += 200) {
+                    if (value == it) {
+                      return it.toString();
+                    }
+                  }
+                } else if (tempMinVal > 2000 && tempMaxVal <= 2500) {
+                  for (int it = 2000; it <= 2500; it += 100) {
+                    if (value == it) {
+                      return it.toString();
+                    }
+                  }
                 }
                 return '';
               },
@@ -165,23 +189,37 @@ class _LineChartWidgetState extends State<LineChartWidget> {
           minX: 0,
           maxX: 23,
           minY: (() {
-            if (tempMaxVal < 0 && tempMinVal >= -25) {
+            if (tempMinVal >= -25) {
               return -25.0;
-            } else if (tempMaxVal < -25 && tempMinVal >= -50) {
+            } else if (tempMinVal >= -50) {
               return -50.0;
-            } else if (tempMaxVal < -50 && tempMinVal >= -100) {
+            } else if (tempMinVal >= -100) {
               return -100.0;
+            } else if (tempMinVal >= -200) {
+              return -200.0;
             } else {
               return 0.0;
             }
           }()),
           maxY: (() {
-            if (tempMinVal > 0 && tempMaxVal <= 5) {
+            if (tempMaxVal <= 5) {
               return 5.0;
-            } else if (tempMinVal > 5 && tempMaxVal <= 50) {
+            } else if (tempMaxVal <= 50) {
               return 50.0;
-            } else if (tempMinVal > 50 && tempMaxVal <= 100) {
+            } else if (tempMaxVal <= 100) {
               return 100.0;
+            } else if (tempMaxVal <= 1000) {
+              return 1000.0;
+            } else if (tempMaxVal <= 2000) {
+              return 2000.0;
+            } else if (tempMaxVal <= 3000) {
+              return 3000.0;
+            } else if (tempMaxVal <= 5000) {
+              return 5000.0;
+            } else if (tempMaxVal <= 10000) {
+              return 10000.0;
+            } else if (tempMaxVal <= 20000) {
+              return 20000.0;
             } else {
               return 0.0;
             }

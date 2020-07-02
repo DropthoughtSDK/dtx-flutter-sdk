@@ -241,9 +241,15 @@ class _MetricsAtLocationsUIState extends State<MetricsAtLocationsUI> {
                         (() {
                           if (viewModel.hourlyData.length == 0) {
                             return Padding(
-                              padding: const EdgeInsets.only(top: 25.0),
-                              child:
-                                  Text('The requested data could not be found'),
+                              padding: EdgeInsets.only(
+                                  top: MediaQuery.of(context).size.height *
+                                      0.25),
+                              child: Text(
+                                  'The requested data could not be found',
+                                  style: TextStyle(
+                                      color: Colors.white.withOpacity(0.88),
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 22.0)),
                             );
                           } else {
                             return CarouselSlider.builder(
