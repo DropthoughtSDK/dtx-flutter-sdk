@@ -12,7 +12,6 @@ import 'High/LineChart.dart';
 import 'package:customgauge/customgauge.dart';
 
 import 'High/PieChart.dart';
-import 'Low/SimpleDropDown.dart';
 
 class NPSDetailsUI extends StatefulWidget {
   @override
@@ -25,13 +24,6 @@ class _NPSDetailsUIState extends State<NPSDetailsUI> {
   bool _visibleDay;
   String selectedValueDay = '', selectedValueLabel = '';
   int _current;
-
-  _callback(val) {
-    setState(() {
-      selectedValueLabel = val;
-    });
-    viewModel.getDistinctScores(selectedValueDay, val);
-  }
 
   callback(val, id) {
     setState(() {
@@ -96,15 +88,14 @@ class _NPSDetailsUIState extends State<NPSDetailsUI> {
                         _visibleDay = false;
                         viewModel.getData();
                         viewModel.getDistinctScores(
-                            viewModel.preloadDay.toString(),
-                            selectedValueLabel);
+                          viewModel.preloadDay.toString(),
+                        );
                       });
                     } else if (selectedValueDay.length > 0) {
                       viewModel.getNPSMetricsDay(selectedValueDay);
 
                       viewModel.getNPSMetrics(selectedValueDay);
-                      viewModel.getDistinctScores(
-                          selectedValueDay, selectedValueLabel);
+                      viewModel.getDistinctScores(selectedValueDay);
                       viewModel.getPieChartData(selectedValueDay);
                     }
                   },
@@ -156,8 +147,8 @@ class _NPSDetailsUIState extends State<NPSDetailsUI> {
                                         selectedValueLabel =
                                             viewModel.preloadLabel;
                                       }
-                                      viewModel.getDistinctScores(
-                                          selectedValueDay, selectedValueLabel);
+                                      viewModel
+                                          .getDistinctScores(selectedValueDay);
                                       viewModel
                                           .getPieChartData(selectedValueDay);
                                     },
@@ -251,12 +242,14 @@ class _NPSDetailsUIState extends State<NPSDetailsUI> {
                                             return Column(
                                               children: [
                                                 Padding(
-                                                  padding:
-                                                      const EdgeInsets.fromLTRB(
-                                                          10.0,
-                                                          30.0,
-                                                          10.0,
-                                                          10.0),
+                                                  padding: EdgeInsets.fromLTRB(
+                                                      10.0,
+                                                      MediaQuery.of(context)
+                                                              .size
+                                                              .height *
+                                                          0.175,
+                                                      10.0,
+                                                      10.0),
                                                   child: Card(
                                                     elevation: 5.0,
                                                     color: Color(0xff121212),
@@ -286,7 +279,7 @@ class _NPSDetailsUIState extends State<NPSDetailsUI> {
                                                           MediaQuery.of(context)
                                                                   .size
                                                                   .width *
-                                                              0.65,
+                                                              0.85,
                                                       segments: [
                                                         GaugeSegment(
                                                             'Very Low',
@@ -322,32 +315,18 @@ class _NPSDetailsUIState extends State<NPSDetailsUI> {
                                                     ),
                                                   ),
                                                 ),
-                                                Container(
-                                                  height: MediaQuery.of(context)
-                                                          .size
-                                                          .height *
-                                                      0.62,
-                                                  child: Card(
-                                                    elevation: 5.0,
-                                                    color: Color(0xff121212),
-                                                    child: LineChartWidget(
-                                                      itemList:
-                                                          viewModel.hourlyData,
-                                                    ),
-                                                  ),
-                                                )
                                               ],
                                             );
                                           } else if (itemIndex == 1) {
                                             return Padding(
                                               padding:
                                                   const EdgeInsets.fromLTRB(
-                                                      5, 30, 5, 10),
+                                                      5, 20, 5, 10),
                                               child: Container(
                                                 height: MediaQuery.of(context)
                                                         .size
                                                         .height *
-                                                    0.7,
+                                                    0.80,
                                                 width: MediaQuery.of(context)
                                                         .size
                                                         .width *
@@ -368,15 +347,20 @@ class _NPSDetailsUIState extends State<NPSDetailsUI> {
                                                                   .all(8.0),
                                                           child: Column(
                                                             children: [
-                                                              SimpleDropDownWidget(
-                                                                items: viewModel
-                                                                    .distinctLabel,
-                                                                callback:
-                                                                    _callback,
-                                                              ),
                                                               LineChartWidget(
-                                                                itemList: viewModel
-                                                                    .hourlyLabelData,
+                                                                primaryScore:
+                                                                    viewModel
+                                                                        .hourlyData,
+                                                                detractorScore:
+                                                                    viewModel
+                                                                        .detractorsData,
+                                                                passiveScore:
+                                                                    viewModel
+                                                                        .passivesData,
+                                                                promoterScore:
+                                                                    viewModel
+                                                                        .promotersData,
+                                                                        legendTitles: viewModel.legendTitles
                                                               )
                                                             ],
                                                           ),

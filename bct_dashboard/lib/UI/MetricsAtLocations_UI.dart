@@ -318,7 +318,7 @@ class _MetricsAtLocationsUIState extends State<MetricsAtLocationsUI> {
                                             (() {
                                               if (itemIndex == 0) {
                                                 return LineChartWidget(
-                                                    itemList:
+                                                    primaryScore:
                                                         viewModel.hourlyData);
                                               } else if (itemIndex == 1) {
                                                 return PieChartWidget(

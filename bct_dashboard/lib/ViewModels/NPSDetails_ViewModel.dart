@@ -20,12 +20,17 @@ class NPSDetailsViewModel extends ChangeNotifier {
   int npsDayData;
   List<int> initDayData;
   List<DropdownMenuItem> distinctLabel;
-  List<FlSpot> hourlyData, hourlyLabelData;
+  List<FlSpot> hourlyData, detractorsData, passivesData, promotersData;
   List<String> pieTitles;
   List<double> pieData;
   List<DropdownMenuItem> days;
   String initNpsMetricsDay, initNpsMetrics, initDistinctLabels;
-
+  List<String> legendTitles = [
+    'NPS Metrics',
+    'Detractors',
+    'Passives',
+    'Promoters'
+  ];
   Logger log = ReturnLogger.returnLogger();
 
   void getData() async {
@@ -66,13 +71,31 @@ class NPSDetailsViewModel extends ChangeNotifier {
 
     preloadLabel = result.data['npsDistinctLabelName'][0]['distinctLabel'];
     npsDistinctScores =
-        NPSDetailsQueries.returnNpsDistinctScores(preloadDay, preloadLabel);
+        NPSDetailsQueries.returnNpsDistinctScores(preloadDay, 'Detractors');
 
     result = await _client.query(QueryOptions(
         documentNode: gql(npsDistinctScores),
-        variables: {'day': preloadDay, 'label': preloadLabel}));
+        variables: {'day': preloadDay, 'label': 'Detractors'}));
 
-    addToDistinctScores(result.data['npsDistinctScores']);
+    addToDistinctScores(result.data['npsDistinctScores'], 'Detractors');
+
+    npsDistinctScores =
+        NPSDetailsQueries.returnNpsDistinctScores(preloadDay, 'Promoters');
+
+    result = await _client.query(QueryOptions(
+        documentNode: gql(npsDistinctScores),
+        variables: {'day': preloadDay, 'label': 'Promoters'}));
+
+    addToDistinctScores(result.data['npsDistinctScores'], 'Promoters');
+
+    npsDistinctScores =
+        NPSDetailsQueries.returnNpsDistinctScores(preloadDay, 'Passives');
+
+    result = await _client.query(QueryOptions(
+        documentNode: gql(npsDistinctScores),
+        variables: {'day': preloadDay, 'label': 'Passives'}));
+
+    addToDistinctScores(result.data['npsDistinctScores'], 'Passives');
 
     npsGetPieChartData = NPSDetailsQueries.returnNpsGetPieChartData(preloadDay);
     result = await _client.query(QueryOptions(
@@ -131,17 +154,34 @@ class NPSDetailsViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void getDistinctScores(String day, String label) async {
+  void getDistinctScores(String day) async {
     if (day == '' || day == null) {
       day = preloadDay.toString();
     }
     String filteredQuery =
-        NPSDetailsQueries.returnNpsDistinctScores(int.parse(day), label);
+        NPSDetailsQueries.returnNpsDistinctScores(int.parse(day), 'Promoters');
     result = await _client.query(QueryOptions(
         documentNode: gql(filteredQuery),
-        variables: {'day': day, 'label': label}));
+        variables: {'day': day, 'label': 'Promoters'}));
 
-    addToDistinctScores(result.data['npsDistinctScores']);
+    addToDistinctScores(result.data['npsDistinctScores'], 'Promoters');
+
+    filteredQuery =
+        NPSDetailsQueries.returnNpsDistinctScores(int.parse(day), 'Detractors');
+    result = await _client.query(QueryOptions(
+        documentNode: gql(filteredQuery),
+        variables: {'day': day, 'label': 'Detractors'}));
+
+    addToDistinctScores(result.data['npsDistinctScores'], 'Detractors');
+
+    filteredQuery =
+        NPSDetailsQueries.returnNpsDistinctScores(int.parse(day), 'Passives');
+    result = await _client.query(QueryOptions(
+        documentNode: gql(filteredQuery),
+        variables: {'day': day, 'label': 'Passives'}));
+
+    addToDistinctScores(result.data['npsDistinctScores'], 'Passives');
+
     notifyListeners();
   }
 
@@ -154,12 +194,26 @@ class NPSDetailsViewModel extends ChangeNotifier {
     });
   }
 
-  void addToDistinctScores(List data) {
-    hourlyLabelData = [];
-    data.forEach((element) {
-      hourlyLabelData.add(FlSpot(
-          element['hour'] * 1.0, element['distinctContributorsCount'] * 1.0));
-    });
+  void addToDistinctScores(List data, String label) {
+    if (label == 'Promoters') {
+      promotersData = [];
+      data.forEach((element) {
+        promotersData.add(FlSpot(
+            element['hour'] * 1.0, element['distinctContributorsCount'] * 1.0));
+      });
+    } else if (label == 'Passives') {
+      passivesData = [];
+      data.forEach((element) {
+        passivesData.add(FlSpot(
+            element['hour'] * 1.0, element['distinctContributorsCount'] * 1.0));
+      });
+    } else if (label == 'Detractors') {
+      detractorsData = [];
+      data.forEach((element) {
+        detractorsData.add(FlSpot(
+            element['hour'] * 1.0, element['distinctContributorsCount'] * 1.0));
+      });
+    }
   }
 
   void getPieChartData(String day) async {
