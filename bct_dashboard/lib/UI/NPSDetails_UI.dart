@@ -279,7 +279,7 @@ class _NPSDetailsUIState extends State<NPSDetailsUI> {
                                                           MediaQuery.of(context)
                                                                   .size
                                                                   .width *
-                                                              0.85,
+                                                              0.7,
                                                       segments: [
                                                         GaugeSegment(
                                                             'Very Low',
@@ -348,20 +348,21 @@ class _NPSDetailsUIState extends State<NPSDetailsUI> {
                                                           child: Column(
                                                             children: [
                                                               LineChartWidget(
-                                                                primaryScore:
-                                                                    viewModel
-                                                                        .hourlyData,
-                                                                detractorScore:
-                                                                    viewModel
-                                                                        .detractorsData,
-                                                                passiveScore:
-                                                                    viewModel
-                                                                        .passivesData,
-                                                                promoterScore:
-                                                                    viewModel
-                                                                        .promotersData,
-                                                                        legendTitles: viewModel.legendTitles
-                                                              )
+                                                                  primaryScore:
+                                                                      viewModel
+                                                                          .hourlyData,
+                                                                  detractorScore:
+                                                                      viewModel
+                                                                          .detractorsData,
+                                                                  passiveScore:
+                                                                      viewModel
+                                                                          .passivesData,
+                                                                  promoterScore:
+                                                                      viewModel
+                                                                          .promotersData,
+                                                                  legendTitles:
+                                                                      viewModel
+                                                                          .legendTitles)
                                                             ],
                                                           ),
                                                         ),
