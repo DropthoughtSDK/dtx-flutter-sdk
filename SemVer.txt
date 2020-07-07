@@ -53,3 +53,12 @@ Currently the application is in 0.1.0 - One complete widget ( with routing, logg
 	* Provided logging at specific points to help debug
 	* GraphQL client is set-up and running which is connected to the back-end NodeJS
 	* Routing has been set-up, which will be incrementally developed with each version. A file routerConstants.dart also contains all the necessary constant routes
+	
+-- Version 0.1.1:
+	
+	* Implemented the 2nd widget NPS-Metrics
+	* 3 tabs, with each tab showing some data related to NPS metrics
+	* 1st tab shows the NPS score at that hour
+	* 2nd tab shows the Detractors, Promoters, Passives and NPS Scores stacked together to show their trend over each hour
+	* 3rd tab shows the pie-chart split-down of all the passives, detractors and promoters contribution
+	
