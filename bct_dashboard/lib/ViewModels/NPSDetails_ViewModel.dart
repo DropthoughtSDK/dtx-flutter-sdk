@@ -140,7 +140,6 @@ class NPSDetailsViewModel extends ChangeNotifier {
         documentNode: gql(filteredQuery), variables: {'day': day}));
 
     cleanData(result.data['npsMetricsDay']);
-
     notifyListeners();
   }
 

@@ -137,7 +137,6 @@ class _LineChartWidgetState extends State<LineChartWidget> {
                   getTooltipItems: (touchedSpots) {
                     List<LineTooltipItem> listItems = [];
                     for (int iter = 0; iter < touchedSpots.length; iter++) {
-                      
                       listItems.add(LineTooltipItem(
                           '${intToHours[touchedSpots[iter].x.round()]}, ${touchedSpots[iter].y.round()}',
                           TextStyle(

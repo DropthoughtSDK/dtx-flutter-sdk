@@ -1,5 +1,4 @@
 import 'package:bct_dashboard/ServiceLocator/service_locator.dart';
-import 'package:bct_dashboard/UI/Low/DropDown.dart';
 import 'package:bct_dashboard/UI/Low/Logger.dart';
 import 'package:bct_dashboard/ViewModels/NPSDetails_ViewModel.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -12,6 +11,7 @@ import 'High/LineChart.dart';
 import 'package:customgauge/customgauge.dart';
 
 import 'High/PieChart.dart';
+import 'High/AnimatedContainerWidget.dart';
 
 class NPSDetailsUI extends StatefulWidget {
   @override
@@ -21,33 +21,20 @@ class NPSDetailsUI extends StatefulWidget {
 class _NPSDetailsUIState extends State<NPSDetailsUI> {
   NPSDetailsViewModel viewModel = serviceLocator<NPSDetailsViewModel>();
   Logger log = ReturnLogger.returnLogger();
-  bool _visibleDay;
   String selectedValueDay = '', selectedValueLabel = '';
   int _current;
-
-  callback(val, id) {
-    setState(() {
-      if (id == "days") {
-        if (val == null) {
-          setState(() {
-            _visibleDay = true;
-          });
-        } else {
-          setState(() {
-            _visibleDay = false;
-          });
-        }
-        selectedValueDay = val;
-      }
-    });
-  }
 
   @override
   void initState() {
     viewModel.getData();
-    _visibleDay = false;
     _current = 0;
     super.initState();
+  }
+
+  callback(val, id, placeholder) {
+    setState(() {
+      selectedValueDay = val;
+    });
   }
 
   @override
@@ -85,7 +72,6 @@ class _NPSDetailsUIState extends State<NPSDetailsUI> {
                       });
                     } else if (selectedValueDay == null) {
                       setState(() {
-                        _visibleDay = false;
                         viewModel.getData();
                         viewModel.getDistinctScores(
                           viewModel.preloadDay.toString(),
@@ -104,61 +90,50 @@ class _NPSDetailsUIState extends State<NPSDetailsUI> {
                     physics: const AlwaysScrollableScrollPhysics(),
                     child: Column(
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(10, 15, 10, 15),
-                          child: Card(
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10.0)),
-                            color: Color(0xff24292E),
-                            elevation: 5.0,
-                            child: Padding(
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Padding(
                               padding: const EdgeInsets.fromLTRB(
-                                  15.0, 5.0, 15.0, 5.0),
-                              child: Column(
-                                children: [
-                                  DropDownWidget(
-                                      dropDownitems: viewModel.days,
-                                      preLoadValue:
-                                          viewModel.preloadDay.toString(),
-                                      callback: callback,
-                                      id: "days"),
-                                  Visibility(
-                                    visible: _visibleDay,
-                                    child: Text(
-                                      '* Please select atleast one of the options',
-                                      style: TextStyle(
-                                          color: Colors.red[800],
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w600),
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    height: 10.0,
-                                  ),
-                                  RaisedButton(
-                                    disabledColor: Colors.grey[800],
-                                    onPressed: () {
-                                      viewModel
-                                          .getNPSMetricsDay(selectedValueDay);
-
-                                      viewModel.getNPSMetrics(selectedValueDay);
-
-                                      if (selectedValueLabel == '') {
-                                        selectedValueLabel =
-                                            viewModel.preloadLabel;
-                                      }
-                                      viewModel
-                                          .getDistinctScores(selectedValueDay);
-                                      viewModel
-                                          .getPieChartData(selectedValueDay);
-                                    },
-                                    child: Text('Apply Filters'),
-                                    color: Colors.green[800],
-                                  ),
-                                ],
+                                  25.0, 25.0, 5.0, 10.0),
+                              child: Text(
+                                selectedValueDay == null ||
+                                        selectedValueDay == ''
+                                    ? 'Day: ${viewModel.preloadDay}'
+                                    : 'Day: $selectedValueDay',
+                                style: TextStyle(
+                                    color: Colors.white.withOpacity(0.87),
+                                    fontSize: 20.0,
+                                    fontWeight: FontWeight.bold),
                               ),
                             ),
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(5, 25, 25, 10),
+                              child: Padding(
+                                  padding: const EdgeInsets.fromLTRB(
+                                      15.0, 5.0, 15.0, 5.0),
+                                  child: Align(
+                                    alignment: Alignment.centerRight,
+                                    child: AnimatedContainerWidget(
+                                        viewModelNps: viewModel,
+                                        callback: callback,
+                                        id: "NPS Metrics"),
+                                  )),
+                            ),
+                          ],
+                        ),
+                        SizedBox(
+                          height: 10.0,
+                        ),
+                        Container(
+                          width: MediaQuery.of(context).size.width * 0.9,
+                          child: Divider(
+                            color: Colors.white,
+                            height: 1.0,
                           ),
+                        ),
+                        SizedBox(
+                          height: 10.0,
                         ),
                         (() {
                           return CarouselSlider.builder(
@@ -247,7 +222,7 @@ class _NPSDetailsUIState extends State<NPSDetailsUI> {
                                                       MediaQuery.of(context)
                                                               .size
                                                               .height *
-                                                          0.175,
+                                                          0.1,
                                                       10.0,
                                                       10.0),
                                                   child: Card(
@@ -373,29 +348,36 @@ class _NPSDetailsUIState extends State<NPSDetailsUI> {
                                               ),
                                             );
                                           } else if (itemIndex == 2) {
-                                            return Padding(
-                                              padding:
-                                                  const EdgeInsets.fromLTRB(
-                                                      5, 30, 5, 10),
-                                              child: Container(
-                                                height: MediaQuery.of(context)
-                                                        .size
-                                                        .height *
-                                                    0.7,
-                                                width: MediaQuery.of(context)
-                                                        .size
-                                                        .width *
-                                                    0.95,
-                                                child: Card(
-                                                  color: Color(0xff121212),
-                                                  elevation: 5,
-                                                  child: PieChartWidget(
-                                                      pieData:
-                                                          viewModel.pieData,
-                                                      pieDataTitles:
-                                                          viewModel.pieTitles),
+                                            return Column(
+                                              children: [
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.fromLTRB(
+                                                          5, 30, 5, 10),
+                                                  child: Container(
+                                                    height:
+                                                        MediaQuery.of(context)
+                                                                .size
+                                                                .height *
+                                                            0.7,
+                                                    width:
+                                                        MediaQuery.of(context)
+                                                                .size
+                                                                .width *
+                                                            0.95,
+                                                    child: Card(
+                                                      color: Color(0xff121212),
+                                                      elevation: 5,
+                                                      child: PieChartWidget(
+                                                          pieData:
+                                                              viewModel.pieData,
+                                                          pieDataTitles:
+                                                              viewModel
+                                                                  .pieTitles),
+                                                    ),
+                                                  ),
                                                 ),
-                                              ),
+                                              ],
                                             );
                                           }
                                         }())
