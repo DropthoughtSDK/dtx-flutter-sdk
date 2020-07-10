@@ -26,7 +26,6 @@ class NPSDetailsViewModel extends ChangeNotifier {
   List<DropdownMenuItem> days;
   String initNpsMetricsDay, initNpsMetrics, initDistinctLabels;
   List<String> legendTitles = [
-    'NPS Metrics',
     'Detractors',
     'Passives',
     'Promoters'

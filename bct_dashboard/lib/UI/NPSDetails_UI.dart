@@ -290,6 +290,14 @@ class _NPSDetailsUIState extends State<NPSDetailsUI> {
                                                     ),
                                                   ),
                                                 ),
+                                                Card(
+                                                  elevation: 5.0,
+                                                  color: Color(0xff121212),
+                                                  child: LineChartWidget(
+                                                    primaryScore:
+                                                        viewModel.hourlyData,
+                                                  ),
+                                                )
                                               ],
                                             );
                                           } else if (itemIndex == 1) {
@@ -323,9 +331,6 @@ class _NPSDetailsUIState extends State<NPSDetailsUI> {
                                                           child: Column(
                                                             children: [
                                                               LineChartWidget(
-                                                                  primaryScore:
-                                                                      viewModel
-                                                                          .hourlyData,
                                                                   detractorScore:
                                                                       viewModel
                                                                           .detractorsData,

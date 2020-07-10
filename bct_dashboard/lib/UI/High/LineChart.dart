@@ -68,11 +68,10 @@ class _LineChartWidgetState extends State<LineChartWidget> {
 
   Map<String, Color> colorDict;
   List<String> legendTitles;
-
+  double tempMaxVal, tempMinVal, tempMaxValAll, tempMinValAll;
   @override
   void initState() {
     colorDict = {
-      'NPS Metrics': Color(0xffa64dff),
       'Promoters': Colors.yellow[700],
       'Passives': Colors.green[800],
       'Detractors': Colors.red[800]
@@ -85,20 +84,38 @@ class _LineChartWidgetState extends State<LineChartWidget> {
     List<double> tempList = [];
     int touchedIndex;
 
-    widget.primaryScore.forEach((element) {
-      tempList.add(element.y);
-    });
-    double tempMaxVal, tempMinVal;
+    if (widget.primaryScore != null) {
+      widget.primaryScore.forEach((element) {
+        tempList.add(element.y);
+      });
 
-    tempMaxVal = tempList.reduce(max);
-    tempMinVal = tempList.reduce(min);
+      tempMaxVal = tempList.reduce(max);
+      tempMinVal = tempList.reduce(min);
+    } else if (widget.primaryScore != null ||
+        widget.promoterScore != null ||
+        widget.detractorScore != null) {
+      List<double> tempListAll = [];
+      widget.promoterScore.forEach((element) {
+        tempListAll.add(element.y);
+      });
+      widget.detractorScore.forEach((element) {
+        tempListAll.add(element.y);
+      });
+      widget.passiveScore.forEach((element) {
+        tempListAll.add(element.y);
+      });
+
+      tempMaxValAll = tempListAll.reduce(max);
+      tempMinValAll = tempListAll.reduce(min);
+    }
 
     return Column(
       children: [
         (() {
           if (widget.legendTitles != null) {
             return Padding(
-              padding: const EdgeInsets.fromLTRB(15.0, 0, 15.0, 5.0),
+              padding: EdgeInsets.fromLTRB(
+                  MediaQuery.of(context).size.width * 0.15, 0, 15.0, 5.0),
               child: SizedBox(
                   height: 50,
                   child: ListView.builder(
@@ -194,71 +211,137 @@ class _LineChartWidgetState extends State<LineChartWidget> {
                     fontSize: 12,
                   ),
                   getTitles: (value) {
-                    if (tempMaxVal < 0 && tempMinVal >= -25) {
-                      for (int it = -25; it <= 0; it += 5) {
-                        if (value == it) {
-                          return it.toString();
+                    if (widget.primaryScore != null) {
+                      print('max: $tempMaxVal, min: $tempMinVal, val: $value');
+                      if (tempMaxVal <= 0 && tempMinVal >= -5) {
+                        for (int it = -5; it <= 0; it += 1) {
+                          if (value == it) {
+                            return it.toString();
+                          }
+                        }
+                      } else if (tempMaxVal <= 0 && tempMinVal >= -25) {
+                        for (int it = -25; it <= 0; it += 5) {
+                          if (value == it) {
+                            return it.toString();
+                          }
+                        }
+                      } else if (tempMaxVal <= 0 && tempMinVal >= -50) {
+                        for (int it = -50; it <= 0; it += 10) {
+                          if (value == it) {
+                            return it.toString();
+                          }
+                        }
+                      } else if (tempMaxVal < 0 && tempMinVal >= -100) {
+                        for (int it = -100; it <= 0; it += 20) {
+                          if (value == it) {
+                            return it.toString();
+                          }
+                        }
+                      } else if (tempMinVal > 0 && tempMaxVal <= 5) {
+                        for (int it = 0; it <= 5; it += 1) {
+                          if (value == it) {
+                            return it.toString();
+                          }
+                        }
+                      } else if (tempMinVal > 0 && tempMaxVal <= 25) {
+                        for (int it = 0; it <= 25; it += 5) {
+                          if (value == it) {
+                            return it.toString();
+                          }
+                        }
+                      } else if (tempMinVal > 0 && tempMaxVal <= 50) {
+                        for (int it = 0; it <= 50; it += 10) {
+                          if (value == it) {
+                            return it.toString();
+                          }
+                        }
+                      } else if (tempMinVal > 0 && tempMaxVal <= 100) {
+                        for (int it = 0; it <= 100; it += 20) {
+                          if (value == it) {
+                            return it.toString();
+                          }
+                        }
+                      } else if (tempMinVal > 0 && tempMaxVal <= 500) {
+                        for (int it = 0; it <= 500; it += 100) {
+                          if (value == it) {
+                            return it.toString();
+                          }
+                        }
+                      } else if (tempMinVal > 0 && tempMaxVal <= 1000) {
+                        for (int it = 0; it <= 1000; it += 200) {
+                          if (value == it) {
+                            return it.toString();
+                          }
+                        }
+                      } else if (tempMinVal > -25 && tempMaxVal < 25) {
+                        for (int it = -25; it <= 25; it += 5) {
+                          if (value == it) {
+                            return it.toString();
+                          }
                         }
                       }
-                    } else if (tempMaxVal < -25 && tempMinVal >= -50) {
-                      for (int it = -50; it <= 0; it += 10) {
-                        if (value == it) {
-                          return it.toString();
+                      return '';
+                    } else {
+                      if (tempMinValAll > 0 && tempMaxValAll <= 25) {
+                        for (int it = 0; it <= 25; it += 5) {
+                          if (value == it) {
+                            return it.toString();
+                          }
                         }
-                      }
-                    } else if (tempMaxVal < -50 && tempMinVal >= -100) {
-                      for (int it = -100; it <= 0; it += 20) {
-                        if (value == it) {
-                          return it.toString();
+                      } else if (tempMinValAll > 0 && tempMaxValAll <= 50) {
+                        for (int it = 0; it <= 50; it += 10) {
+                          if (value == it) {
+                            return it.toString();
+                          }
                         }
-                      }
-                    } else if (tempMinVal > 0 && tempMaxVal <= 5) {
-                      for (int it = 0; it <= 5; it += 1) {
-                        if (value == it) {
-                          return it.toString();
+                      } else if (tempMinValAll > 0 && tempMaxValAll <= 100) {
+                        for (int it = 0; it <= 100; it += 20) {
+                          if (value == it) {
+                            return it.toString();
+                          }
                         }
-                      }
-                    } else if (tempMinVal > 5 && tempMaxVal <= 50) {
-                      for (int it = 0; it <= 50; it += 10) {
-                        if (value == it) {
-                          return it.toString();
+                      } else if (tempMinValAll > 0 && tempMaxValAll <= 500) {
+                        for (int it = 0; it <= 500; it += 100) {
+                          if (value == it) {
+                            return it.toString();
+                          }
                         }
-                      }
-                    } else if (tempMinVal > 50 && tempMaxVal <= 100) {
-                      for (int it = 0; it <= 100; it += 20) {
-                        if (value == it) {
-                          return it.toString();
+                      } else if (tempMinValAll > 0 && tempMaxValAll <= 1000) {
+                        for (int it = 0; it <= 1000; it += 200) {
+                          if (value == it) {
+                            return it.toString();
+                          }
                         }
-                      }
-                    } else if (tempMinVal > 100 && tempMaxVal <= 1000) {
-                      for (int it = 100; it <= 1000; it += 200) {
-                        if (value == it) {
-                          return it.toString();
+                      } else if (tempMinValAll > 0 && tempMaxValAll <= 5000) {
+                        for (int it = 0; it <= 5000; it += 1000) {
+                          if (value == it) {
+                            return it.toString();
+                          }
                         }
-                      }
-                    } else if (tempMinVal > 1000 && tempMaxVal <= 2000) {
-                      for (int it = 1000; it <= 2000; it += 200) {
-                        if (value == it) {
-                          return it.toString();
+                      } else if (tempMinValAll > 0 && tempMaxValAll <= 10000) {
+                        for (int it = 0; it <= 10000; it += 2000) {
+                          if (value == it) {
+                            return it.toString();
+                          }
                         }
-                      }
-                    } else if (tempMinVal > 2000 && tempMaxVal <= 3000) {
-                      for (int it = 2000; it <= 3000; it += 200) {
-                        if (value == it) {
-                          return it.toString();
+                      } else if (tempMinValAll > 0 && tempMaxValAll <= 15000) {
+                        for (int it = 0; it <= 15000; it += 3000) {
+                          if (value == it) {
+                            return it.toString();
+                          }
                         }
-                      }
-                    } else if (tempMinVal > 2000 && tempMaxVal <= 2500) {
-                      for (int it = 2000; it <= 2500; it += 100) {
-                        if (value == it) {
-                          return it.toString();
+                      } else if (tempMinValAll > 0 && tempMaxValAll <= 20000) {
+                        for (int it = 0; it <= 20000; it += 4000) {
+                          if (value == it) {
+                            return it.toString();
+                          }
                         }
                       }
                     }
                     return '';
                   },
-                  reservedSize: 25,
-                  margin: 10,
+                  reservedSize: 30,
+                  margin: 5,
                 ),
               ),
               backgroundColor: Color(0xff121212),
@@ -288,64 +371,105 @@ class _LineChartWidgetState extends State<LineChartWidget> {
               minX: 0,
               maxX: 23,
               minY: (() {
-                if (tempMinVal >= -25) {
-                  return -25.0;
-                } else if (tempMinVal >= -50) {
-                  return -50.0;
-                } else if (tempMinVal >= -100) {
-                  return -100.0;
-                } else if (tempMinVal >= -200) {
-                  return -200.0;
+                if (widget.primaryScore != null) {
+                  if (tempMaxVal <= 0 && tempMinVal >= -5) {
+                    return -5.0;
+                  }
+                  if (tempMaxVal <= 0 && tempMinVal >= -25) {
+                    return -25.0;
+                  }
+                  if (tempMaxVal > 0 && tempMinVal <= 0) {
+                    return -25.0;
+                  }
+                  if (tempMaxVal <= 0 && tempMinVal >= -50) {
+                    return -50.0;
+                  }
+                  if (tempMaxVal <= 0 && tempMinVal >= -100) {
+                    return -100.0;
+                  }
+                  if (tempMaxVal <= 0 && tempMinVal >= -500) {
+                    return -500.0;
+                  } else {
+                    return 0.0;
+                  }
                 } else {
                   return 0.0;
                 }
               }()),
-              //TODO: Normalize y-axis values to show them, look for any other chart allows for pinch zoom.
-              // maxY: (() {
-              //   if (tempMaxVal <= 5) {
-              //     return 5.0;
-              //   } else if (tempMaxVal <= 50) {
-              //     return 50.0;
-              //   } else if (tempMaxVal <= 100) {
-              //     return 100.0;
-              //   } else if (tempMaxVal <= 1000) {
-              //     return 1000.0;
-              //   } else if (tempMaxVal <= 2000) {
-              //     return 2000.0;
-              //   } else if (tempMaxVal <= 3000) {
-              //     return 3000.0;
-              //   } else if (tempMaxVal <= 5000) {
-              //     return 5000.0;
-              //   } else if (tempMaxVal <= 10000) {
-              //     return 10000.0;
-              //   } else if (tempMaxVal <= 20000) {
-              //     return 20000.0;
-              //   } else {
-              //     return 0.0;
-              //   }
-              // }()),
+              maxY: (() {
+                if (widget.primaryScore != null) {
+                  if (tempMinVal > 0 && tempMaxVal <= 5) {
+                    return 5.0;
+                  }
+                  if (tempMinVal > 5 && tempMaxVal <= 25) {
+                    return 25.0;
+                  }
+                  if (tempMinVal > 5 && tempMaxVal <= 50) {
+                    return 50.0;
+                  }
+                  if (tempMinVal > 5 && tempMaxVal <= 100) {
+                    return 100.0;
+                  }
+                  if (tempMinVal > 5 && tempMaxVal <= 100) {
+                    return 100.0;
+                  }
+                  if (tempMinVal > 5 && tempMaxVal <= 500) {
+                    return 500.0;
+                  }
+                  if (tempMinVal > 5 && tempMaxVal <= 1000) {
+                    return 1000.0;
+                  }
+                } else {
+                  if (tempMinValAll > 0 && tempMaxValAll <= 5) {
+                    return 5.0;
+                  }
+                  if (tempMinValAll > 5 && tempMaxValAll <= 25) {
+                    return 25.0;
+                  }
+                  if (tempMinValAll > 5 && tempMaxValAll <= 50) {
+                    return 50.0;
+                  }
+                  if (tempMinValAll > 5 && tempMaxValAll <= 100) {
+                    return 100.0;
+                  }
+                  if (tempMinValAll > 5 && tempMaxValAll <= 500) {
+                    return 500.0;
+                  }
+                  if (tempMinValAll > 5 && tempMaxValAll <= 1000) {
+                    return 1000.0;
+                  }
+                  if (tempMinValAll > 5 && tempMaxValAll <= 5000) {
+                    return 5000.0;
+                  }
+                  if (tempMinValAll > 5 && tempMaxValAll <= 10000) {
+                    return 10000.0;
+                  }
+                }
+              }()),
               lineBarsData: (() {
                 LineChartBarData lineChartBarData1,
                     lineChartBarData2,
                     lineChartBarData3,
                     lineChartBarData4;
 
-                lineChartBarData1 = LineChartBarData(
-                  spots: widget.primaryScore,
-                  isCurved: true,
-                  colors: gradientColors,
-                  barWidth: 5,
-                  isStrokeCapRound: true,
-                  dotData: FlDotData(
-                    show: false,
-                  ),
-                  belowBarData: BarAreaData(
-                    show: true,
-                    colors: gradientColors
-                        .map((color) => color.withOpacity(0.3))
-                        .toList(),
-                  ),
-                );
+                if (widget.primaryScore != null) {
+                  lineChartBarData1 = LineChartBarData(
+                    spots: widget.primaryScore,
+                    isCurved: true,
+                    colors: gradientColors,
+                    barWidth: 5,
+                    isStrokeCapRound: true,
+                    dotData: FlDotData(
+                      show: false,
+                    ),
+                    belowBarData: BarAreaData(
+                      show: true,
+                      colors: gradientColors
+                          .map((color) => color.withOpacity(0.3))
+                          .toList(),
+                    ),
+                  );
+                }
 
                 if (widget.detractorScore != null) {
                   lineChartBarData2 = LineChartBarData(
@@ -391,40 +515,27 @@ class _LineChartWidgetState extends State<LineChartWidget> {
                       widget.passiveScore != null &&
                       widget.promoterScore != null) {
                     return [
-                      lineChartBarData1,
                       lineChartBarData2,
                       lineChartBarData3,
                       lineChartBarData4
                     ];
                   } else if (widget.detractorScore != null &&
                       widget.passiveScore != null) {
-                    return [
-                      lineChartBarData1,
-                      lineChartBarData2,
-                      lineChartBarData3
-                    ];
+                    return [lineChartBarData2, lineChartBarData3];
                   } else if (widget.detractorScore != null &&
                       widget.promoterScore != null) {
-                    return [
-                      lineChartBarData1,
-                      lineChartBarData2,
-                      lineChartBarData4
-                    ];
+                    return [lineChartBarData2, lineChartBarData4];
                   } else if (widget.passiveScore != null &&
                       widget.promoterScore != null) {
-                    return [
-                      lineChartBarData1,
-                      lineChartBarData3,
-                      lineChartBarData4
-                    ];
+                    return [lineChartBarData3, lineChartBarData4];
                   } else if (widget.detractorScore != null) {
-                    return [lineChartBarData1, lineChartBarData2];
+                    return [lineChartBarData2];
                   } else if (widget.passiveScore != null) {
-                    return [lineChartBarData1, lineChartBarData3];
+                    return [lineChartBarData3];
                   } else if (widget.promoterScore != null) {
-                    return [lineChartBarData1, lineChartBarData4];
+                    return [lineChartBarData4];
                   }
-                } else {
+                } else if (widget.primaryScore != null) {
                   return [lineChartBarData1];
                 }
               }()),
