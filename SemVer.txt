@@ -62,3 +62,7 @@ Currently the application is in 0.1.0 - One complete widget ( with routing, logg
 	* 2nd tab shows the Detractors, Promoters, Passives and NPS Scores stacked together to show their trend over each hour
 	* 3rd tab shows the pie-chart split-down of all the passives, detractors and promoters contribution
 	
+-- Version 0.2.0:
+	* Completely finished the functionality and UI (almost) of the NPS Metrics tab
+	* Included an animated widget for showing and hiding the filters' page
+	* Fixed and normalised all the y-axis values for all the line-charts in this tab

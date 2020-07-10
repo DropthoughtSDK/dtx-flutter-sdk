@@ -86,7 +86,6 @@ class _NPSDetailsUIState extends State<NPSDetailsUI> {
                     }
                   },
                   child: SingleChildScrollView(
-                    //FIXME: Fix bugs, test for all conditions
                     physics: const AlwaysScrollableScrollPhysics(),
                     child: Column(
                       children: [
