@@ -4,6 +4,7 @@ const { MetricsType } = require("./metricsTypes");
 const { NpsType } = require("./npsTypes");
 
 const RootQuery = new GraphQLObjectType({
+    //FIXME: Write better optimized queries and parallelise back-end operations to reduce load-time to 3-5 seconds (later work on further lowering the loadtimes if possible)
     name: "RootQueryType",
     type: "Query",
     fields: {

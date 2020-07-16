@@ -212,7 +212,6 @@ class _LineChartWidgetState extends State<LineChartWidget> {
                   ),
                   getTitles: (value) {
                     if (widget.primaryScore != null) {
-                      print('max: $tempMaxVal, min: $tempMinVal, val: $value');
                       if (tempMaxVal <= 0 && tempMinVal >= -5) {
                         for (int it = -5; it <= 0; it += 1) {
                           if (value == it) {
@@ -543,6 +542,7 @@ class _LineChartWidgetState extends State<LineChartWidget> {
           ),
         ),
       ],
+
     );
   }
 }

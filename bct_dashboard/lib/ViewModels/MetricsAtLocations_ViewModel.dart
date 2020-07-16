@@ -31,7 +31,6 @@ class MetricsAtLocationsViewModel extends ChangeNotifier {
   QueryResult result, filteredResults, pieResults;
   String mainQuery;
   String pieChartQuery;
-  QueryResult get returnData => result;
   Logger log = ReturnLogger.returnLogger();
 
   void getData() async {
@@ -44,6 +43,8 @@ class MetricsAtLocationsViewModel extends ChangeNotifier {
     pieData = [];
     pieDataTitles = [];
 
+    Stopwatch stopwatch = new Stopwatch()..start();
+    print('1');
     result = await _client.query(QueryOptions(
         documentNode: gql(MetricsAtLocationsQueries.initLabelQuery),
         variables: {}));
@@ -52,6 +53,9 @@ class MetricsAtLocationsViewModel extends ChangeNotifier {
     addLabels(initLabelData);
 
     preloadLabel = initLabelData.last;
+    print('data is: ${result.data}, time taken is: ${stopwatch.elapsed}');
+    
+    print('2');
 
     result = await _client.query(QueryOptions(
         documentNode: gql(MetricsAtLocationsQueries.initNameQuery),
@@ -61,6 +65,8 @@ class MetricsAtLocationsViewModel extends ChangeNotifier {
 
     addNames(initNameData);
     preloadName = initNameData.last;
+    stopwatch..stop();
+    print('data is: ${result.data}, time taken is: ${stopwatch.elapsed}');
 
     result = await _client.query(QueryOptions(
         documentNode: gql(MetricsAtLocationsQueries.initDayQuery),
