@@ -136,7 +136,6 @@ class _AnimatedContainerWidgetState extends State<AnimatedContainerWidget> {
                   onPressed: () {
                     widget.viewModelMetrics.getFilteredData(selectedValueDay,
                         selectedValueName, selectedValueLabel);
-
                     widget.viewModelMetrics.getFilteredPieData(selectedValueDay,
                         selectedValueName, selectedValueLabel);
                     widget.callback(selectedValueName, selectedValueLabel,

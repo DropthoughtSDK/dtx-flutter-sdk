@@ -43,8 +43,8 @@ class MetricsAtLocationsViewModel extends ChangeNotifier {
     pieData = [];
     pieDataTitles = [];
 
-    Stopwatch stopwatch = new Stopwatch()..start();
-    print('1');
+    Stopwatch stopwatch = new Stopwatch();
+    stopwatch..start();
     result = await _client.query(QueryOptions(
         documentNode: gql(MetricsAtLocationsQueries.initLabelQuery),
         variables: {}));
@@ -53,10 +53,11 @@ class MetricsAtLocationsViewModel extends ChangeNotifier {
     addLabels(initLabelData);
 
     preloadLabel = initLabelData.last;
-    print('data is: ${result.data}, time taken is: ${stopwatch.elapsed}');
-    
-    print('2');
 
+    print('time: ${stopwatch.elapsed}');
+
+    Stopwatch stopwatch1 = new Stopwatch();
+    stopwatch1..start();
     result = await _client.query(QueryOptions(
         documentNode: gql(MetricsAtLocationsQueries.initNameQuery),
         variables: {}));
@@ -65,8 +66,10 @@ class MetricsAtLocationsViewModel extends ChangeNotifier {
 
     addNames(initNameData);
     preloadName = initNameData.last;
-    stopwatch..stop();
-    print('data is: ${result.data}, time taken is: ${stopwatch.elapsed}');
+    print('time1: ${stopwatch1.elapsed}');
+
+    Stopwatch stopwatch2 = new Stopwatch();
+    stopwatch2..start();
 
     result = await _client.query(QueryOptions(
         documentNode: gql(MetricsAtLocationsQueries.initDayQuery),
@@ -76,9 +79,12 @@ class MetricsAtLocationsViewModel extends ChangeNotifier {
 
     addDays(initDayData);
     preloadDay = initDayData.last;
-
+    print('time2: ${stopwatch2.elapsed}');
     mainQuery = MetricsAtLocationsQueries.returnMainQuery(
         preloadDay, preloadName, preloadLabel);
+
+    Stopwatch stopwatch3 = new Stopwatch();
+    stopwatch3..start();
 
     result = await _client.query(QueryOptions(
         documentNode: gql(mainQuery),
@@ -89,10 +95,13 @@ class MetricsAtLocationsViewModel extends ChangeNotifier {
         }));
 
     cleanData(result.data['metrics']);
+    print('time3: ${stopwatch3.elapsed}');
 
     pieChartQuery = MetricsAtLocationsQueries.returnPieChartQuery(
         preloadDay, preloadName, preloadLabel);
 
+    Stopwatch stopwatch4 = new Stopwatch();
+    stopwatch4..start();
     result = await _client.query(QueryOptions(
         documentNode: gql(pieChartQuery),
         variables: {
@@ -102,6 +111,8 @@ class MetricsAtLocationsViewModel extends ChangeNotifier {
         }));
 
     cleanPieChartData(result.data['getPieChartData']);
+    print('time4: ${stopwatch4.elapsed}');
+
     log.i(
         "Initial Data for linechart and piechart is fetched, cleaned and passed to the UI");
     notifyListeners();
@@ -164,6 +175,7 @@ class MetricsAtLocationsViewModel extends ChangeNotifier {
   }
 
   void getFilteredData(String day, String name, String label) async {
+    Stopwatch stop1 = new Stopwatch()..start();
     String filteredDataQuery =
         MetricsAtLocationsQueries.returnMainQuery(int.parse(day), name, label);
     filteredResults = await _client.query(QueryOptions(
@@ -171,13 +183,14 @@ class MetricsAtLocationsViewModel extends ChangeNotifier {
         variables: {'day': day, 'name': name, 'label': label}));
 
     cleanData(filteredResults.data['metrics']);
-
+    print('filtered data time: ${stop1.elapsed}');
     log.i(
         "OnSubmit data has been fetched, cleaned and sent back to repopulate the LineChart View in UI");
     notifyListeners();
   }
 
   void getFilteredPieData(String day, String name, String label) async {
+    Stopwatch stop1 = new Stopwatch()..start();
     String filteredPieDataQuery = MetricsAtLocationsQueries.returnPieChartQuery(
         int.parse(day), name, label);
 
@@ -186,7 +199,7 @@ class MetricsAtLocationsViewModel extends ChangeNotifier {
         variables: {'day': day, 'name': name, 'label': label}));
 
     cleanPieChartData(pieResults.data['getPieChartData']);
-
+    print('filtered data time: ${stop1.elapsed}');
     log.i(
         "OnSubmit data has been fetched, cleaned and sent back to repopulate the PieChart View in UI");
     notifyListeners();
