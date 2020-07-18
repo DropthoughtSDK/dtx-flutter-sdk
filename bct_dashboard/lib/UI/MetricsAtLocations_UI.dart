@@ -51,7 +51,7 @@ class _MetricsAtLocationsUIState extends State<MetricsAtLocationsUI> {
       create: (context) => viewModel,
       child: Consumer<MetricsAtLocationsViewModel>(
         builder: (context, model, child) {
-          if (viewModel.result == null) {
+          if (viewModel.resultData.length == 0) {
             log.i(
                 "Data is loading, displaying a circular loading indicator in the meantime");
             return SpinKitWave(

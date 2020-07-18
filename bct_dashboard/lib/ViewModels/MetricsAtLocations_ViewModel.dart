@@ -6,6 +6,7 @@ import 'package:graphql/client.dart';
 import '../Queries/MetricsAtLocations_Queries.dart';
 import '../UI/Low/Logger.dart';
 import 'package:logger/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MetricsAtLocationsViewModel extends ChangeNotifier {
   MetricsAtLocationsViewModel();
@@ -32,89 +33,180 @@ class MetricsAtLocationsViewModel extends ChangeNotifier {
   String mainQuery;
   String pieChartQuery;
   Logger log = ReturnLogger.returnLogger();
+  List<Future> futures = [];
+  List<Future> getFutures = [];
+  List resultData = [];
 
-  void getData() async {
-    initDayData = [];
-    initLabelData = [];
-    initNameData = [];
-    names = [];
-    labels = [];
-    days = [];
-    pieData = [];
-    pieDataTitles = [];
-
-    Stopwatch stopwatch = new Stopwatch();
-    stopwatch..start();
-    result = await _client.query(QueryOptions(
+  List<Future> initFutures() {
+    futures.add(_client.query(QueryOptions(
         documentNode: gql(MetricsAtLocationsQueries.initLabelQuery),
-        variables: {}));
+        variables: {})));
 
-    cleanInitData(result.data['distinctLabelsQuery']);
-    addLabels(initLabelData);
-
-    preloadLabel = initLabelData.last;
-
-    print('time: ${stopwatch.elapsed}');
-
-    Stopwatch stopwatch1 = new Stopwatch();
-    stopwatch1..start();
-    result = await _client.query(QueryOptions(
+    futures.add(_client.query(QueryOptions(
         documentNode: gql(MetricsAtLocationsQueries.initNameQuery),
-        variables: {}));
+        variables: {})));
 
-    cleanInitData(result.data['distinctNamesQuery']);
-
-    addNames(initNameData);
-    preloadName = initNameData.last;
-    print('time1: ${stopwatch1.elapsed}');
-
-    Stopwatch stopwatch2 = new Stopwatch();
-    stopwatch2..start();
-
-    result = await _client.query(QueryOptions(
+    futures.add(_client.query(QueryOptions(
         documentNode: gql(MetricsAtLocationsQueries.initDayQuery),
-        variables: {}));
+        variables: {})));
 
-    cleanInitData(result.data['distinctDaysQuery']);
+    return futures;
+  }
 
-    addDays(initDayData);
-    preloadDay = initDayData.last;
-    print('time2: ${stopwatch2.elapsed}');
+  List<Future> getInitFutures() {
     mainQuery = MetricsAtLocationsQueries.returnMainQuery(
         preloadDay, preloadName, preloadLabel);
 
-    Stopwatch stopwatch3 = new Stopwatch();
-    stopwatch3..start();
-
-    result = await _client.query(QueryOptions(
+    getFutures.add(_client.query(QueryOptions(
         documentNode: gql(mainQuery),
         variables: {
           'day': preloadDay,
           'name': preloadName,
           'label': preloadLabel
-        }));
-
-    cleanData(result.data['metrics']);
-    print('time3: ${stopwatch3.elapsed}');
+        })));
 
     pieChartQuery = MetricsAtLocationsQueries.returnPieChartQuery(
         preloadDay, preloadName, preloadLabel);
 
-    Stopwatch stopwatch4 = new Stopwatch();
-    stopwatch4..start();
-    result = await _client.query(QueryOptions(
+    getFutures.add(_client.query(QueryOptions(
         documentNode: gql(pieChartQuery),
         variables: {
           'day': preloadDay,
           'name': preloadName,
           'label': preloadLabel
-        }));
+        })));
 
-    cleanPieChartData(result.data['getPieChartData']);
-    print('time4: ${stopwatch4.elapsed}');
+    return getFutures;
+  }
 
-    log.i(
-        "Initial Data for linechart and piechart is fetched, cleaned and passed to the UI");
+  void getData() async {
+    Stopwatch stopwatchx = new Stopwatch()..start();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    Duration diff;
+
+    if (prefs.getString('dateTime') != null) {
+      DateTime timeToLive = DateTime.parse(prefs.getString('dateTime'));
+      DateTime now = DateTime.now();
+      diff = timeToLive.difference(now);
+
+      if (diff.inMinutes <= 0) {
+        var futures = initFutures();
+        var result = await Future.wait(futures);
+
+        cleanInitData(result[0].data['distinctLabelsQuery']);
+        addLabels(initLabelData);
+        preloadLabel = initLabelData.last;
+
+        cleanInitData(result[1].data['distinctNamesQuery']);
+
+        addNames(initNameData);
+        preloadName = initNameData.last;
+
+        cleanInitData(result[2].data['distinctDaysQuery']);
+
+        addDays(initDayData);
+        preloadDay = initDayData.last;
+
+        var dataFutures = getInitFutures();
+        resultData = await Future.wait(dataFutures);
+
+        cleanData(resultData[0].data['metrics']);
+
+        cleanPieChartData(resultData[1].data['getPieChartData']);
+
+        log.d(
+            'total time taken for fetching Initial data: ${stopwatchx.elapsed}');
+
+        log.i(
+            "Initial Data for linechart and piechart is fetched, cleaned and passed to the UI");
+
+        DateTime time = DateTime.now().add(Duration(hours: 24));
+        prefs.setString('dateTime', time.toString());
+        prefs.setInt('initDayData', preloadDay);
+        var initDayList = [];
+        initDayData.forEach((element) {
+          initDayList.add(element.toString());
+        });
+        prefs.setStringList('initDayList', initDayList);
+        prefs.setString('initLabelData', preloadLabel);
+        prefs.setStringList('initLabelList', initLabelData);
+        prefs.setString('initNameData', preloadName);
+        prefs.setStringList('initNameList', initNameData);
+      } else {
+        initDayData = [];
+        initLabelData = [];
+        initNameData = [];
+        days = [];
+        names = [];
+        labels = [];
+
+        log.i(
+            "Initial data is already available, no need for fetching, displaying UI right away!");
+
+        preloadLabel = prefs.getString('initLabelData');
+        preloadDay = prefs.getInt('initDayData');
+        preloadName = prefs.getString('initNameData');
+
+        var getDays = prefs.getStringList('initDayList');
+        getDays.forEach((element) {
+          int.parse(element);
+        });
+
+        addDays(getDays);
+        addLabels(prefs.getStringList('initLabelList'));
+        addNames(prefs.getStringList('initNameList'));
+
+        var dataFutures = getInitFutures();
+        resultData = await Future.wait(dataFutures);
+
+        cleanData(resultData[0].data['metrics']);
+
+        cleanPieChartData(resultData[1].data['getPieChartData']);
+      }
+    } else {
+      var futures = initFutures();
+      var result = await Future.wait(futures);
+
+      cleanInitData(result[0].data['distinctLabelsQuery']);
+      addLabels(initLabelData);
+      preloadLabel = initLabelData.last;
+
+      cleanInitData(result[1].data['distinctNamesQuery']);
+
+      addNames(initNameData);
+      preloadName = initNameData.last;
+
+      cleanInitData(result[2].data['distinctDaysQuery']);
+
+      addDays(initDayData);
+      preloadDay = initDayData.last;
+
+      var dataFutures = getInitFutures();
+      resultData = await Future.wait(dataFutures);
+
+      cleanData(resultData[0].data['metrics']);
+
+      cleanPieChartData(resultData[1].data['getPieChartData']);
+
+      log.d(
+          'total time taken for fetching Initial data: ${stopwatchx.elapsed}');
+
+      log.i(
+          "Initial Data for linechart and piechart is fetched, cleaned and passed to the UI");
+
+      DateTime time = DateTime.now().add(Duration(hours: 24));
+      prefs.setString('dateTime', time.toString());
+      prefs.setInt('initDayData', preloadDay);
+      List<String> initDayList = [];
+      initDayData.forEach((element) {
+        initDayList.add(element.toString());
+      });
+      prefs.setStringList('initDayList', initDayList);
+      prefs.setString('initLabelData', preloadLabel);
+      prefs.setStringList('initLabelList', initLabelData);
+      prefs.setString('initNameData', preloadName);
+      prefs.setStringList('initNameList', initNameData);
+    }
     notifyListeners();
   }
 
@@ -183,7 +275,7 @@ class MetricsAtLocationsViewModel extends ChangeNotifier {
         variables: {'day': day, 'name': name, 'label': label}));
 
     cleanData(filteredResults.data['metrics']);
-    print('filtered data time: ${stop1.elapsed}');
+    log.d('Time taken for fetching filtered line chart data: ${stop1.elapsed}');
     log.i(
         "OnSubmit data has been fetched, cleaned and sent back to repopulate the LineChart View in UI");
     notifyListeners();
@@ -199,7 +291,7 @@ class MetricsAtLocationsViewModel extends ChangeNotifier {
         variables: {'day': day, 'name': name, 'label': label}));
 
     cleanPieChartData(pieResults.data['getPieChartData']);
-    print('filtered data time: ${stop1.elapsed}');
+    log.d('Time taken for fetching filtered pie chart data: ${stop1.elapsed}');
     log.i(
         "OnSubmit data has been fetched, cleaned and sent back to repopulate the PieChart View in UI");
     notifyListeners();
