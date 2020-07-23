@@ -82,10 +82,6 @@ class _AnimatedContainerWidgetState extends State<AnimatedContainerWidget> {
                     onPressed: () {
                       widget.viewModelNps.getNPSMetricsDay(selectedValueDay);
                       widget.viewModelNps.getNPSMetrics(selectedValueDay);
-
-                      if (selectedValueLabel == '') {
-                        selectedValueLabel = widget.viewModelNps.preloadLabel;
-                      }
                       widget.viewModelNps.getDistinctScores(selectedValueDay);
                       widget.viewModelNps.getPieChartData(selectedValueDay);
                       widget.callback(selectedValueDay, "NPS Metrics", "");

@@ -5,6 +5,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:logger/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class NPSDetailsViewModel extends ChangeNotifier {
   GraphQLClient _client = ConfigTest.initailizeClient();
@@ -23,14 +24,53 @@ class NPSDetailsViewModel extends ChangeNotifier {
   List<FlSpot> hourlyData, detractorsData, passivesData, promotersData;
   List<String> pieTitles;
   List<double> pieData;
+  List<Future> futures = [];
+  List resultData = [];
+
   List<DropdownMenuItem> days;
   String initNpsMetricsDay, initNpsMetrics, initDistinctLabels;
-  List<String> legendTitles = [
-    'Detractors',
-    'Passives',
-    'Promoters'
-  ];
+  List<String> legendTitles = ['Detractors', 'Passives', 'Promoters'];
   Logger log = ReturnLogger.returnLogger();
+
+  List<Future> initFutures() {
+    initNpsMetricsDay = NPSDetailsQueries.returnNpsMetricsDay(preloadDay);
+
+    futures.add(_client.query(QueryOptions(
+        documentNode: gql(initNpsMetricsDay), variables: {'day': preloadDay})));
+
+    initNpsMetrics = NPSDetailsQueries.returnNpsMetrics(preloadDay);
+
+    futures.add(_client.query(QueryOptions(
+        documentNode: gql(initNpsMetrics), variables: {'day': preloadDay})));
+
+    npsDistinctScores =
+        NPSDetailsQueries.returnNpsDistinctScores(preloadDay, 'Detractors');
+
+    futures.add(_client.query(QueryOptions(
+        documentNode: gql(npsDistinctScores),
+        variables: {'day': preloadDay, 'label': 'Detractors'})));
+
+    npsDistinctScores =
+        NPSDetailsQueries.returnNpsDistinctScores(preloadDay, 'Promoters');
+
+    futures.add(_client.query(QueryOptions(
+        documentNode: gql(npsDistinctScores),
+        variables: {'day': preloadDay, 'label': 'Promoters'})));
+
+    npsDistinctScores =
+        NPSDetailsQueries.returnNpsDistinctScores(preloadDay, 'Passives');
+
+    futures.add(_client.query(QueryOptions(
+        documentNode: gql(npsDistinctScores),
+        variables: {'day': preloadDay, 'label': 'Passives'})));
+
+    npsGetPieChartData = NPSDetailsQueries.returnNpsGetPieChartData(preloadDay);
+    futures.add(_client.query(QueryOptions(
+        documentNode: gql(npsGetPieChartData),
+        variables: {'day': preloadDay})));
+
+    return futures;
+  }
 
   void getData() async {
     initDayData = [];
@@ -39,68 +79,184 @@ class NPSDetailsViewModel extends ChangeNotifier {
     hourlyData = [];
     pieTitles = [];
     pieData = [];
+    Stopwatch stopwatch = new Stopwatch()..start();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    Duration diff;
 
-    result = await _client.query(QueryOptions(
-        documentNode: gql(NPSDetailsQueries.distinctDayNPS), variables: {}));
+    if (prefs.getString('dateTimeNPS') != null) {
+      detractorsData = [];
+      passivesData = [];
+      promotersData = [];
+      pieData = [];
+      pieTitles = [];
+      hourlyData = [];
 
-    cleanInitData(result.data['distinctDayNPS']);
-    addDays(initDayData);
+      DateTime timeToLive = DateTime.parse(prefs.getString('dateTimeNPS'));
+      DateTime now = DateTime.now();
+      diff = timeToLive.difference(now);
 
-    preloadDay = initDayData.last;
+      if (diff.inMinutes <= 0) {
+        result = await _client.query(QueryOptions(
+            documentNode: gql(NPSDetailsQueries.distinctDayNPS),
+            variables: {}));
 
-    initNpsMetricsDay = NPSDetailsQueries.returnNpsMetricsDay(preloadDay);
+        cleanInitData(result.data['distinctDayNPS']);
+        addDays(initDayData);
+        preloadDay = initDayData.last;
+        var dataFutures = initFutures();
+        resultData = await Future.wait(dataFutures);
 
-    result = await _client.query(QueryOptions(
-        documentNode: gql(initNpsMetricsDay), variables: {'day': preloadDay}));
-    cleanData(result.data['npsMetricsDay']);
+        cleanData(resultData[0].data['npsMetricsDay']);
+        addToHourlyData(resultData[1].data['npsMetrics']);
 
-    initNpsMetrics = NPSDetailsQueries.returnNpsMetrics(preloadDay);
+        addToDistinctScores(
+            resultData[2].data['npsDistinctScores'], 'Detractors');
+        addToDistinctScores(
+            resultData[3].data['npsDistinctScores'], 'Promoters');
+        addToDistinctScores(
+            resultData[4].data['npsDistinctScores'], 'Passives');
+        addToPieChart(resultData[5].data['npsGetPieChartData']);
 
-    result = await _client.query(QueryOptions(
-        documentNode: gql(initNpsMetrics), variables: {'day': preloadDay}));
+        DateTime time = DateTime.now().add(Duration(hours: 24));
+        prefs.setString('dateTimeNPS', time.toString());
 
-    addToHourlyData(result.data['npsMetrics']);
+        List<String> initDayList = [];
+        initDayData.forEach((element) {
+          initDayList.add(element.toString());
+        });
+        prefs.setStringList('DayList', initDayList);
 
-    initDistinctLabels = NPSDetailsQueries.returnNpsDistinctLabelName();
+        log.i('Time Taken to fetch initial data is: ${stopwatch.elapsed}');
+      } else {
+        detractorsData = [];
+        passivesData = [];
+        promotersData = [];
+        pieData = [];
+        pieTitles = [];
+        hourlyData = [];
 
-    result = await _client.query(
-        QueryOptions(documentNode: gql(initDistinctLabels), variables: {}));
+        log.i(
+            'Initial data is already available, no need for fetching. Displaying UI right away');
+        Stopwatch stopwatchx = new Stopwatch()..start();
+        var getDays = prefs.getStringList('DayList');
+        getDays.forEach((element) {
+          int.parse(element);
+        });
 
-    addToDistinctLabels(result.data['npsDistinctLabelName']);
+        addDays(getDays);
+        preloadDay = int.parse(getDays.last);
+        npsDayData = num.parse(prefs.getString('npsMetricsDay'));
 
-    preloadLabel = result.data['npsDistinctLabelName'][0]['distinctLabel'];
-    npsDistinctScores =
-        NPSDetailsQueries.returnNpsDistinctScores(preloadDay, 'Detractors');
+        for (int i = 0; i < prefs.getStringList('npsHourList').length; i++) {
+          hourlyData.add(FlSpot(
+              num.parse(prefs.getStringList('npsHourList')[i]) * 1.0,
+              num.parse(num.parse(prefs.getStringList('npsLineData')[i])
+                  .toStringAsFixed(2))));
 
-    result = await _client.query(QueryOptions(
-        documentNode: gql(npsDistinctScores),
-        variables: {'day': preloadDay, 'label': 'Detractors'}));
+          detractorsData.add(FlSpot(
+              num.parse(prefs.getStringList('npsHourList')[i]) * 1.0,
+              num.parse(num.parse(prefs.getStringList('detractorsLineData')[i])
+                  .toStringAsFixed(2))));
 
-    addToDistinctScores(result.data['npsDistinctScores'], 'Detractors');
+          promotersData.add(FlSpot(
+              num.parse(prefs.getStringList('npsHourList')[i]) * 1.0,
+              num.parse(num.parse(prefs.getStringList('promotersLineData')[i])
+                  .toStringAsFixed(2))));
 
-    npsDistinctScores =
-        NPSDetailsQueries.returnNpsDistinctScores(preloadDay, 'Promoters');
+          passivesData.add(FlSpot(
+              num.parse(prefs.getStringList('npsHourList')[i]) * 1.0,
+              num.parse(num.parse(prefs.getStringList('passivesLineData')[i])
+                  .toStringAsFixed(2))));
+        }
 
-    result = await _client.query(QueryOptions(
-        documentNode: gql(npsDistinctScores),
-        variables: {'day': preloadDay, 'label': 'Promoters'}));
+        resultData.add(hourlyData);
 
-    addToDistinctScores(result.data['npsDistinctScores'], 'Promoters');
+        pieTitles = prefs.getStringList('npsPieTitles');
+        prefs.getStringList('npsPieData').forEach((element) {
+          pieData.add(num.parse(element));
+        });
 
-    npsDistinctScores =
-        NPSDetailsQueries.returnNpsDistinctScores(preloadDay, 'Passives');
+        log.i('Time taken for entire data fetch: ${stopwatchx.elapsed}');
+      }
+    } else {
+      detractorsData = [];
+      passivesData = [];
+      promotersData = [];
+      pieData = [];
+      pieTitles = [];
+      hourlyData = [];
 
-    result = await _client.query(QueryOptions(
-        documentNode: gql(npsDistinctScores),
-        variables: {'day': preloadDay, 'label': 'Passives'}));
+      Stopwatch stopwatchy = new Stopwatch()..start();
+      result = await _client.query(QueryOptions(
+          documentNode: gql(NPSDetailsQueries.distinctDayNPS), variables: {}));
 
-    addToDistinctScores(result.data['npsDistinctScores'], 'Passives');
+      cleanInitData(result.data['distinctDayNPS']);
+      addDays(initDayData);
+      preloadDay = initDayData.last;
+      var dataFutures = initFutures();
+      resultData = await Future.wait(dataFutures);
 
-    npsGetPieChartData = NPSDetailsQueries.returnNpsGetPieChartData(preloadDay);
-    result = await _client.query(QueryOptions(
-        documentNode: gql(npsGetPieChartData), variables: {'day': preloadDay}));
+      cleanData(resultData[0].data['npsMetricsDay']);
+      prefs.setString('npsMetricsDay', npsDayData.toString());
+      addToHourlyData(resultData[1].data['npsMetrics']);
 
-    addToPieChart(result.data['npsGetPieChartData']);
+      List<String> hourList = [];
+      List<String> npsLineDataList = [];
+
+      resultData[1].data['npsMetrics'].forEach((element) {
+        hourList.add(element['hour'].toString());
+        npsLineDataList.add(element['avgScore'].toString());
+      });
+
+      prefs.setStringList('npsHourList', hourList);
+      prefs.setStringList('npsLineData', npsLineDataList);
+
+      List<String> detractorsLineData = [];
+      List<String> promotersLineData = [];
+      List<String> passivesLineData = [];
+
+      addToDistinctScores(
+          resultData[2].data['npsDistinctScores'], 'Detractors');
+
+      resultData[2].data['npsDistinctScores'].forEach((element) {
+        detractorsLineData.add(element['distinctContributorsCount'].toString());
+      });
+
+      addToDistinctScores(resultData[3].data['npsDistinctScores'], 'Promoters');
+      resultData[3].data['npsDistinctScores'].forEach((element) {
+        promotersLineData.add(element['distinctContributorsCount'].toString());
+      });
+
+      addToDistinctScores(resultData[4].data['npsDistinctScores'], 'Passives');
+      resultData[4].data['npsDistinctScores'].forEach((element) {
+        passivesLineData.add(element['distinctContributorsCount'].toString());
+      });
+
+      prefs.setStringList('detractorsLineData', detractorsLineData);
+      prefs.setStringList('promotersLineData', promotersLineData);
+      prefs.setStringList('passivesLineData', passivesLineData);
+
+      addToPieChart(resultData[5].data['npsGetPieChartData']);
+      prefs.setStringList('npsPieTitles', pieTitles);
+
+      List<String> pieDataCached = [];
+      resultData[5].data['npsGetPieChartData'].forEach((element) {
+        pieDataCached.add((element['labelPercent'] * 1.0).toString());
+      });
+
+      prefs.setStringList('npsPieData', pieDataCached);
+
+      DateTime time = DateTime.now().add(Duration(hours: 24));
+      prefs.setString('dateTimeNPS', time.toString());
+
+      List<String> initDayList = [];
+      initDayData.forEach((element) {
+        initDayList.add(element.toString());
+      });
+      prefs.setStringList('DayList', initDayList);
+
+      log.i('Total time taken for loading initData: ${stopwatchy.elapsed}');
+    }
 
     notifyListeners();
   }
@@ -121,7 +277,7 @@ class NPSDetailsViewModel extends ChangeNotifier {
   }
 
   void cleanData(List data) {
-    npsDayData = result.data['npsMetricsDay'][0]['avgScoreDay'];
+    npsDayData = resultData[0].data['npsMetricsDay'][0]['avgScoreDay'];
   }
 
   void addToHourlyData(List data) {
@@ -137,8 +293,8 @@ class NPSDetailsViewModel extends ChangeNotifier {
         NPSDetailsQueries.returnNpsMetricsDay(int.parse(day));
     result = await _client.query(QueryOptions(
         documentNode: gql(filteredQuery), variables: {'day': day}));
+    npsDayData = result.data['npsMetricsDay'][0]['avgScoreDay'];
 
-    cleanData(result.data['npsMetricsDay']);
     notifyListeners();
   }
 

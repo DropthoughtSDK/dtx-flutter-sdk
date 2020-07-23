@@ -90,6 +90,7 @@ class MetricsAtLocationsViewModel extends ChangeNotifier {
       diff = timeToLive.difference(now);
 
       if (diff.inMinutes <= 0) {
+        resultData = [];
         var futures = initFutures();
         var result = await Future.wait(futures);
 
@@ -123,7 +124,7 @@ class MetricsAtLocationsViewModel extends ChangeNotifier {
         DateTime time = DateTime.now().add(Duration(hours: 24));
         prefs.setString('dateTime', time.toString());
         prefs.setInt('initDayData', preloadDay);
-        var initDayList = [];
+        List<String> initDayList = [];
         initDayData.forEach((element) {
           initDayList.add(element.toString());
         });
@@ -139,7 +140,9 @@ class MetricsAtLocationsViewModel extends ChangeNotifier {
         days = [];
         names = [];
         labels = [];
+        resultData = [];
 
+        Stopwatch stopwatch2 = Stopwatch()..start();
         log.i(
             "Initial data is already available, no need for fetching, displaying UI right away!");
 
@@ -147,23 +150,33 @@ class MetricsAtLocationsViewModel extends ChangeNotifier {
         preloadDay = prefs.getInt('initDayData');
         preloadName = prefs.getString('initNameData');
 
-        var getDays = prefs.getStringList('initDayList');
-        getDays.forEach((element) {
-          int.parse(element);
+        List<int> getDays = [];
+        prefs.getStringList('initDayList').forEach((element) {
+          getDays.add(int.parse(element));
         });
 
         addDays(getDays);
         addLabels(prefs.getStringList('initLabelList'));
         addNames(prefs.getStringList('initNameList'));
 
-        var dataFutures = getInitFutures();
-        resultData = await Future.wait(dataFutures);
+        hourlyData = [];
+        for (int i = 0; i < prefs.getStringList('hourList').length; i++) {
+          hourlyData.add(FlSpot(
+              int.parse(prefs.getStringList('hourList')[i]) * 1.0,
+              num.parse(num.parse(prefs.getStringList('lineDataList')[i])
+                  .toStringAsFixed(2))));
+        }
 
-        cleanData(resultData[0].data['metrics']);
-
-        cleanPieChartData(resultData[1].data['getPieChartData']);
+        pieData = [];
+        pieDataTitles = prefs.getStringList('pieTitles');
+        prefs.getStringList('pieData').forEach((element) {
+          pieData.add(num.parse(element));
+        });
+        resultData.add(hourlyData);
+        log.i('Total time taken for fetching data is: ${stopwatch2.elapsed}');
       }
     } else {
+      resultData = [];
       var futures = initFutures();
       var result = await Future.wait(futures);
 
@@ -184,9 +197,20 @@ class MetricsAtLocationsViewModel extends ChangeNotifier {
       var dataFutures = getInitFutures();
       resultData = await Future.wait(dataFutures);
 
+      List<String> hourlyLineDataCached = [];
+      List<String> hourListCached = [];
       cleanData(resultData[0].data['metrics']);
+      resultData[0].data['metrics'].forEach((element) {
+        hourListCached.add(element['hour'].toString());
+        hourlyLineDataCached.add(element['avgScore'].toString());
+      });
 
       cleanPieChartData(resultData[1].data['getPieChartData']);
+      List<String> pieDataCachedValues = [];
+
+      pieData.forEach((element) {
+        pieDataCachedValues.add(element.toString());
+      });
 
       log.d(
           'total time taken for fetching Initial data: ${stopwatchx.elapsed}');
@@ -206,6 +230,10 @@ class MetricsAtLocationsViewModel extends ChangeNotifier {
       prefs.setStringList('initLabelList', initLabelData);
       prefs.setString('initNameData', preloadName);
       prefs.setStringList('initNameList', initNameData);
+      prefs.setStringList('hourList', hourListCached);
+      prefs.setStringList('lineDataList', hourlyLineDataCached);
+      prefs.setStringList('pieTitles', pieDataTitles);
+      prefs.setStringList('pieData', pieDataCachedValues);
     }
     notifyListeners();
   }
