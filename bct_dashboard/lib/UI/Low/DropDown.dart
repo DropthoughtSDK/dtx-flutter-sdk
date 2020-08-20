@@ -4,11 +4,16 @@ import 'package:searchable_dropdown/searchable_dropdown.dart';
 class DropDownWidget extends StatefulWidget {
   final List<DropdownMenuItem> dropDownitems;
   final String preLoadValue;
-  final Function(String, String) callback;
+  final Function(String, String, String) callback;
   final String id;
+  final String section;
 
   DropDownWidget(
-      {this.dropDownitems, this.preLoadValue, this.callback, this.id});
+      {this.dropDownitems,
+      this.preLoadValue,
+      this.callback,
+      this.id,
+      this.section});
   @override
   _DropDownWidgetState createState() => _DropDownWidgetState();
 }
@@ -26,7 +31,7 @@ class _DropDownWidgetState extends State<DropDownWidget> {
   Widget build(BuildContext context) {
     return SearchableDropdown.single(
       iconEnabledColor: Colors.redAccent,
-      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+      style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600),
       items: widget.dropDownitems,
       menuBackgroundColor: Colors.grey[300],
       value: selectedValue,
@@ -38,7 +43,7 @@ class _DropDownWidgetState extends State<DropDownWidget> {
       onChanged: (text) {
         setState(() {
           selectedValue = text;
-          widget.callback(selectedValue, widget.id);
+          widget.callback(selectedValue, widget.id, widget.section);
         });
       },
       doneButton: "Done",

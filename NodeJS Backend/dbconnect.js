@@ -13,3 +13,4 @@ const config = {
 const db = pgp(config);
 
 exports.db = db;
+exports.pgp = pgp;

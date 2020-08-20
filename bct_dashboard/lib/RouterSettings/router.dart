@@ -13,5 +13,6 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       return MaterialPageRoute(builder: (context) => MetricsAtLocationsUI());
 
     default:
+      return MaterialPageRoute(builder: (context) => MetricsAtLocationsUI());
   }
 }

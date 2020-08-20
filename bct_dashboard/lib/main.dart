@@ -1,3 +1,4 @@
+import 'package:bct_dashboard/UI/NPSDetails_UI.dart';
 import 'package:flutter/material.dart';
 import './UI/MetricsAtLocations_UI.dart';
 import './ServiceLocator/service_locator.dart';
@@ -44,7 +45,6 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             RaisedButton(
-              //FIXME: Implement routing with a proper routing module set-up
               onPressed: () {
                 Navigator.push(
                     context,
@@ -52,7 +52,15 @@ class _MyHomePageState extends State<MyHomePage> {
                         builder: (context) => MetricsAtLocationsUI()));
               },
               child: Text("Metrics At Locations Tab"),
-            )
+            ),
+            RaisedButton(
+                onPressed: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => NPSDetailsUI()));
+                },
+                child: Text('NPS Details Tab'))
           ],
         ),
       ),
